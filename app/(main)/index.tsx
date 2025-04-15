@@ -1,4 +1,5 @@
 import { useSettings } from "@/context/SettingsContext";
+import { useTapData } from "@/context/tap-context";
 import { useRouter } from "expo-router";
 import React, { useState, useRef, useEffect } from "react";
 import {
@@ -27,15 +28,9 @@ interface Ripple {
 const TapAppAlternative = () => {
   const { push } = useRouter();
   const { settings } = useSettings();
+  const { addTap, currentSession } = useTapData();
   // State to keep track of tap count
-  const [tapCount, setTapCount] = useState(0);
   // Stats state
-  const [stats, setStats] = useState({
-    longestSession: 0,
-    totalTaps: 0,
-    averageTapsPerSecond: 0,
-    sessionStartTime: Date.now(),
-  });
 
   // Ripple effect state
   const [ripples, setRipples] = useState<Ripple[]>([]);
@@ -47,21 +42,7 @@ const TapAppAlternative = () => {
   // Animation value for feedback effect
   const animatedScale = useRef(new Animated.Value(1)).current;
 
-  // Update stats when tapCount changes
-  useEffect(() => {
-    if (tapCount > 0) {
-      const sessionDuration = (Date.now() - stats.sessionStartTime) / 1000;
-      const tapsPerSecond =
-        sessionDuration > 0 ? tapCount / sessionDuration : 0;
-
-      setStats((prevStats) => ({
-        ...prevStats,
-        totalTaps: prevStats.totalTaps + 1,
-        longestSession: Math.max(prevStats.longestSession, tapCount),
-        averageTapsPerSecond: tapsPerSecond,
-      }));
-    }
-  }, [tapCount]);
+  // Start a new session when the app loads
 
   // Clean up completed ripple animations
   useEffect(() => {
@@ -142,8 +123,8 @@ const TapAppAlternative = () => {
       }).start();
     }
 
-    // Increment tap count
-    setTapCount((prevCount) => prevCount + 1);
+    addTap(locationX, locationY);
+    0;
 
     // Optional: Vibrate for haptic feedback if enabled
     if (settings.hapticFeedback) {
@@ -175,7 +156,13 @@ const TapAppAlternative = () => {
     if (Platform.OS === "ios") {
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: ["Cancel", "Settings", "Exit App", "View Stats"],
+          options: [
+            "Cancel",
+            "Settings",
+            "Exit App",
+            "View Stats",
+            "New Session",
+          ],
           cancelButtonIndex: 0,
           destructiveButtonIndex: 2,
         },
@@ -193,6 +180,7 @@ const TapAppAlternative = () => {
           { text: "Settings", onPress: () => handleActionSheetSelection(1) },
           { text: "Exit App", onPress: () => handleActionSheetSelection(2) },
           { text: "View Stats", onPress: () => handleActionSheetSelection(3) },
+          { text: "New Session", onPress: () => handleActionSheetSelection(4) },
         ],
         { cancelable: true }
       );
@@ -212,12 +200,7 @@ const TapAppAlternative = () => {
         }
         break;
       case 3: // View Stats
-        Alert.alert(
-          "Tap Statistics",
-          `Total Taps: ${stats.totalTaps}\nLongest Session: ${
-            stats.longestSession
-          }\nAverage Speed: ${stats.averageTapsPerSecond.toFixed(2)} taps/sec`
-        );
+        push("/stats");
         break;
       default:
         break;
@@ -267,7 +250,17 @@ const TapAppAlternative = () => {
           style={[styles.container, { transform: [{ scale: animatedScale }] }]}
         >
           {settings.showCounter && (
-            <Text style={styles.counter}>{tapCount}</Text>
+            <View style={styles.counterContainer}>
+              <Text style={styles.counter}>
+                {currentSession?.tapCount || 0}
+              </Text>
+              {currentSession && (
+                <Text style={styles.sessionInfo}>
+                  Session:{" "}
+                  {new Date(currentSession.startTime).toLocaleTimeString()}
+                </Text>
+              )}
+            </View>
           )}
           <Text style={styles.instruction}>Two-finger long press for menu</Text>
           {renderRipples()}
@@ -285,11 +278,21 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     overflow: "hidden", // Keep ripples contained within the container
   },
+  counterContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
   counter: {
     fontSize: 48,
     fontWeight: "bold",
     color: "#333",
     opacity: 0.3,
+  },
+  sessionInfo: {
+    fontSize: 12,
+    color: "#666",
+    opacity: 0.5,
+    marginTop: 5,
   },
   instruction: {
     position: "absolute",
