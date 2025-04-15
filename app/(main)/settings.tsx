@@ -1,5 +1,6 @@
+import { useSettings } from "@/context/SettingsContext";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import {
   View,
   Text,
@@ -11,10 +12,7 @@ import {
 
 const SettingsScreen = () => {
   const { back } = useRouter();
-  const [hapticFeedback, setHapticFeedback] = useState(true);
-  const [visualFeedback, setVisualFeedback] = useState(true);
-  const [showCounter, setShowCounter] = useState(true);
-  const [rippleEffect, setRippleEffect] = useState(true);
+  const { settings, updateSetting } = useSettings();
 
   return (
     <View style={styles.container}>
@@ -23,22 +21,34 @@ const SettingsScreen = () => {
       <ScrollView style={styles.settingsContainer}>
         <View style={styles.setting}>
           <Text style={styles.settingText}>Haptic Feedback</Text>
-          <Switch value={hapticFeedback} onValueChange={setHapticFeedback} />
+          <Switch
+            value={settings.hapticFeedback}
+            onValueChange={(value) => updateSetting("hapticFeedback", value)}
+          />
         </View>
 
         <View style={styles.setting}>
           <Text style={styles.settingText}>Visual Feedback</Text>
-          <Switch value={visualFeedback} onValueChange={setVisualFeedback} />
+          <Switch
+            value={settings.visualFeedback}
+            onValueChange={(value) => updateSetting("visualFeedback", value)}
+          />
         </View>
 
         <View style={styles.setting}>
           <Text style={styles.settingText}>Show Counter</Text>
-          <Switch value={showCounter} onValueChange={setShowCounter} />
+          <Switch
+            value={settings.showCounter}
+            onValueChange={(value) => updateSetting("showCounter", value)}
+          />
         </View>
 
         <View style={styles.setting}>
           <Text style={styles.settingText}>Ripple Effect</Text>
-          <Switch value={rippleEffect} onValueChange={setRippleEffect} />
+          <Switch
+            value={settings.rippleEffect}
+            onValueChange={(value) => updateSetting("rippleEffect", value)}
+          />
         </View>
 
         <View style={styles.divider} />

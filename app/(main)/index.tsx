@@ -1,3 +1,4 @@
+import { useSettings } from "@/context/SettingsContext";
 import { useRouter } from "expo-router";
 import React, { useState, useRef, useEffect } from "react";
 import {
@@ -25,6 +26,7 @@ interface Ripple {
 
 const TapAppAlternative = () => {
   const { push } = useRouter();
+  const { settings } = useSettings();
   // State to keep track of tap count
   const [tapCount, setTapCount] = useState(0);
   // Stats state
@@ -117,46 +119,52 @@ const TapAppAlternative = () => {
     const locationX = event.nativeEvent.locationX;
     const locationY = event.nativeEvent.locationY;
 
-    // Create new ripple
-    const newRipple = {
-      id: rippleId.current,
-      startX: locationX,
-      startY: locationY,
-      animation: new Animated.Value(0),
-    };
+    // Create and animate ripple effect if enabled
+    if (settings.rippleEffect) {
+      const newRipple = {
+        id: rippleId.current,
+        startX: locationX,
+        startY: locationY,
+        animation: new Animated.Value(0),
+      };
 
-    // Increment ID for next ripple
-    rippleId.current += 1;
+      // Increment ID for next ripple
+      rippleId.current += 1;
 
-    // Add new ripple to state
-    setRipples((prevRipples) => [...prevRipples, newRipple]);
+      // Add new ripple to state
+      setRipples((prevRipples) => [...prevRipples, newRipple]);
 
-    // Start ripple animation
-    Animated.timing(newRipple.animation, {
-      toValue: 1,
-      duration: 800,
-      useNativeDriver: true,
-    }).start();
+      // Start ripple animation
+      Animated.timing(newRipple.animation, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }).start();
+    }
 
     // Increment tap count
     setTapCount((prevCount) => prevCount + 1);
 
-    // Optional: Vibrate for haptic feedback
-    Vibration.vibrate(10);
+    // Optional: Vibrate for haptic feedback if enabled
+    if (settings.hapticFeedback) {
+      Vibration.vibrate(10);
+    }
 
-    // Animate scale for visual feedback
-    Animated.sequence([
-      Animated.timing(animatedScale, {
-        toValue: 0.98,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.timing(animatedScale, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    // Animate scale for visual feedback if enabled
+    if (settings.visualFeedback) {
+      Animated.sequence([
+        Animated.timing(animatedScale, {
+          toValue: 0.98,
+          duration: 100,
+          useNativeDriver: true,
+        }),
+        Animated.timing(animatedScale, {
+          toValue: 1,
+          duration: 100,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
   };
 
   // Show ActionSheet
@@ -258,7 +266,9 @@ const TapAppAlternative = () => {
         <Animated.View
           style={[styles.container, { transform: [{ scale: animatedScale }] }]}
         >
-          <Text style={styles.counter}>{tapCount}</Text>
+          {settings.showCounter && (
+            <Text style={styles.counter}>{tapCount}</Text>
+          )}
           <Text style={styles.instruction}>Two-finger long press for menu</Text>
           {renderRipples()}
         </Animated.View>
