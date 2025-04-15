@@ -12,12 +12,15 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Pressable,
+  Modal,
+  Dimensions,
 } from "react-native";
 
 const StatsScreen = () => {
   const { back } = useRouter();
-  const { getAllTaps, getAllSessions, getTapsBySession, clearAllData } =
-    useTapData();
+  const { getAllTaps, getAllSessions, clearAllData } = useTapData();
+  const [showModal, setShowModal] = useState(false);
 
   const [isLoading, setIsLoading] = useState(true);
   const [sessions, setSessions] = useState<TapSession[]>([]);
@@ -254,10 +257,15 @@ const StatsScreen = () => {
         {/* Heat Map Visualization */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Tap Distribution</Text>
+          <Text style={styles.statLabel}>Click to toggle fullscreen</Text>
           {selectedSession ? (
-            <TapHeatmap
-              taps={allTaps.filter((tap) => tap.sessionId === selectedSession)}
-            />
+            <Pressable onPress={() => setShowModal(true)}>
+              <TapHeatmap
+                taps={allTaps.filter(
+                  (tap) => tap.sessionId === selectedSession
+                )}
+              />
+            </Pressable>
           ) : (
             <View style={styles.heatmapPlaceholder}>
               <Text style={styles.placeholderText}>
@@ -265,6 +273,24 @@ const StatsScreen = () => {
               </Text>
             </View>
           )}
+          <Modal
+            visible={showModal}
+            onTouchCancel={() => setShowModal(false)}
+            transparent
+          >
+            <Pressable
+              onPress={() => setShowModal(false)}
+              style={{ backgroundColor: "blue", height: "100%" }}
+            >
+              <TapHeatmap
+                taps={allTaps.filter(
+                  (tap) => tap.sessionId === selectedSession
+                )}
+                width={Dimensions.get("window").width}
+                height={Dimensions.get("window").height}
+              />
+            </Pressable>
+          </Modal>
         </View>
 
         {/* Data Management */}
