@@ -257,7 +257,6 @@ const StatsScreen = () => {
           {selectedSession ? (
             <TapHeatmap
               taps={allTaps.filter((tap) => tap.sessionId === selectedSession)}
-              height={220}
             />
           ) : (
             <View style={styles.heatmapPlaceholder}>

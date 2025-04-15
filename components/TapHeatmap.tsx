@@ -14,10 +14,15 @@ interface TapHeatmapProps {
   height?: number;
 }
 
+const heatmapWidth = Dimensions.get("window").width - 60;
+const heatmapHeight =
+  (Dimensions.get("window").height / Dimensions.get("window").width) *
+  heatmapWidth;
+
 const TapHeatmap: React.FC<TapHeatmapProps> = ({
   taps,
-  width = Dimensions.get("window").width - 60, // Default width with some padding
-  height = 200, // Default height
+  width = heatmapWidth,
+  height = heatmapHeight,
 }) => {
   const [heatmapPoints, setHeatmapPoints] = useState<HeatmapPoint[]>([]);
 
