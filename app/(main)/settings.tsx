@@ -14,6 +14,7 @@ const SettingsScreen = () => {
   const [hapticFeedback, setHapticFeedback] = useState(true);
   const [visualFeedback, setVisualFeedback] = useState(true);
   const [showCounter, setShowCounter] = useState(true);
+  const [rippleEffect, setRippleEffect] = useState(true);
 
   return (
     <View style={styles.container}>
@@ -33,6 +34,11 @@ const SettingsScreen = () => {
         <View style={styles.setting}>
           <Text style={styles.settingText}>Show Counter</Text>
           <Switch value={showCounter} onValueChange={setShowCounter} />
+        </View>
+
+        <View style={styles.setting}>
+          <Text style={styles.settingText}>Ripple Effect</Text>
+          <Switch value={rippleEffect} onValueChange={setRippleEffect} />
         </View>
 
         <View style={styles.divider} />

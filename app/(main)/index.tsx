@@ -12,7 +12,16 @@ import {
   Alert,
   BackHandler,
   PanResponder,
+  GestureResponderEvent,
 } from "react-native";
+
+// Interface for ripple objects
+interface Ripple {
+  id: number;
+  startX: number;
+  startY: number;
+  animation: Animated.Value;
+}
 
 const TapAppAlternative = () => {
   const { push } = useRouter();
@@ -25,6 +34,10 @@ const TapAppAlternative = () => {
     averageTapsPerSecond: 0,
     sessionStartTime: Date.now(),
   });
+
+  // Ripple effect state
+  const [ripples, setRipples] = useState<Ripple[]>([]);
+  const rippleId = useRef(0);
 
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(
     null
@@ -47,6 +60,18 @@ const TapAppAlternative = () => {
       }));
     }
   }, [tapCount]);
+
+  // Clean up completed ripple animations
+  useEffect(() => {
+    if (ripples.length > 0) {
+      const timer = setTimeout(() => {
+        // Remove ripples that have completed their animation
+        setRipples((prevRipples) => prevRipples.slice(1));
+      }, 1000); // Ripple duration
+
+      return () => clearTimeout(timer);
+    }
+  }, [ripples]);
 
   // Pan responder to detect multi-touch
   const panResponder = useRef(
@@ -87,7 +112,32 @@ const TapAppAlternative = () => {
   ).current;
 
   // Handle tap events
-  const handleTap = () => {
+  const handleTap = (event: GestureResponderEvent) => {
+    // Get the tap location - using locationX/Y for precise position
+    const locationX = event.nativeEvent.locationX;
+    const locationY = event.nativeEvent.locationY;
+
+    // Create new ripple
+    const newRipple = {
+      id: rippleId.current,
+      startX: locationX,
+      startY: locationY,
+      animation: new Animated.Value(0),
+    };
+
+    // Increment ID for next ripple
+    rippleId.current += 1;
+
+    // Add new ripple to state
+    setRipples((prevRipples) => [...prevRipples, newRipple]);
+
+    // Start ripple animation
+    Animated.timing(newRipple.animation, {
+      toValue: 1,
+      duration: 800,
+      useNativeDriver: true,
+    }).start();
+
     // Increment tap count
     setTapCount((prevCount) => prevCount + 1);
 
@@ -166,6 +216,42 @@ const TapAppAlternative = () => {
     }
   };
 
+  // Render ripple effects
+  const renderRipples = () => {
+    return ripples.map((ripple) => {
+      // Calculate ripple size and opacity based on animation value
+      const rippleScale = ripple.animation.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 4], // Scale to 4x for a larger ripple
+      });
+
+      const opacity = ripple.animation.interpolate({
+        inputRange: [0, 0.3, 1],
+        outputRange: [0.4, 0.2, 0],
+      });
+
+      return (
+        <Animated.View
+          key={ripple.id}
+          style={[
+            styles.ripple,
+            {
+              position: "absolute",
+              left: ripple.startX,
+              top: ripple.startY,
+              opacity,
+              transform: [
+                { translateX: -25 }, // Half of initial ripple size (50px)
+                { translateY: -25 }, // Half of initial ripple size (50px)
+                { scale: rippleScale },
+              ],
+            },
+          ]}
+        />
+      );
+    });
+  };
+
   return (
     <View style={{ flex: 1 }} {...panResponder.panHandlers}>
       <TouchableWithoutFeedback onPress={handleTap}>
@@ -174,6 +260,7 @@ const TapAppAlternative = () => {
         >
           <Text style={styles.counter}>{tapCount}</Text>
           <Text style={styles.instruction}>Two-finger long press for menu</Text>
+          {renderRipples()}
         </Animated.View>
       </TouchableWithoutFeedback>
     </View>
@@ -186,6 +273,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden", // Keep ripples contained within the container
   },
   counter: {
     fontSize: 48,
@@ -199,6 +287,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#777",
     opacity: 0.5,
+  },
+  ripple: {
+    width: 50, // Smaller initial size for more accurate positioning
+    height: 50, // Smaller initial size for more accurate positioning
+    borderRadius: 25, // Half of width/height
+    backgroundColor: "#007AFF", // Same blue as the back button
   },
 });
 
