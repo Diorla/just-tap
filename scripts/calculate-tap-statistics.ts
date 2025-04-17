@@ -49,13 +49,14 @@ export default function calculateTapStatistics(taps: TapData[]) {
       tapIntervals.length;
     averageSpeed = 1000 / avgInterval;
 
-    // Fastest tap (highest taps per second)
-    const minInterval = Math.min(...tapIntervals);
-    fastestTap = 1000 / minInterval;
-
     // Slowest tap (lowest taps per second)
     const maxInterval = Math.max(...tapIntervals);
-    slowestTap = 1000 / maxInterval;
+    // Fastest tap (highest taps per second)
+    const minInterval = Math.min(...tapIntervals);
+
+    fastestTap = 1000 / maxInterval;
+
+    slowestTap = 1000 / minInterval;
   }
 
   // Average distance between taps
