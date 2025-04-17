@@ -16,6 +16,7 @@ import {
   Modal,
   Dimensions,
   Button,
+  Platform,
 } from "react-native";
 
 const StatsScreen = () => {
@@ -461,6 +462,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     fontSize: 16,
+    marginBottom: Platform.OS === "android" ? 25 : 0,
   },
 });
 
