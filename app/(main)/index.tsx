@@ -96,16 +96,16 @@ const TapAppAlternative = () => {
 
   // Handle tap events
   const handleTap = (event: GestureResponderEvent) => {
-    // Get the tap location - using locationX/Y for precise position
-    const locationX = event.nativeEvent.locationX;
-    const locationY = event.nativeEvent.locationY;
+    // Get the tap location - using pageX/Y for absolute position instead of locationX/Y
+    const pageX = event.nativeEvent.pageX;
+    const pageY = event.nativeEvent.pageY;
 
     // Create and animate ripple effect if enabled
     if (settings.rippleEffect) {
       const newRipple = {
         id: rippleId.current,
-        startX: locationX,
-        startY: locationY,
+        startX: pageX,
+        startY: pageY,
         animation: new Animated.Value(0),
       };
 
@@ -123,8 +123,7 @@ const TapAppAlternative = () => {
       }).start();
     }
 
-    addTap(locationX, locationY);
-    0;
+    addTap(pageX, pageY);
 
     // Optional: Vibrate for haptic feedback if enabled
     if (settings.hapticFeedback) {
