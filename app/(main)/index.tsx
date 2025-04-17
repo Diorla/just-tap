@@ -28,7 +28,7 @@ interface Ripple {
 const TapAppAlternative = () => {
   const { push } = useRouter();
   const { settings } = useSettings();
-  const { addTap, currentSession } = useTapData();
+  const { addTap, currentSession, startNewSession } = useTapData();
   // State to keep track of tap count
   // Stats state
 
@@ -41,8 +41,6 @@ const TapAppAlternative = () => {
   );
   // Animation value for feedback effect
   const animatedScale = useRef(new Animated.Value(1)).current;
-
-  // Start a new session when the app loads
 
   // Clean up completed ripple animations
   useEffect(() => {
@@ -152,18 +150,20 @@ const TapAppAlternative = () => {
     // Vibrate to indicate action sheet trigger
     Vibration.vibrate(50);
 
+    const options = [
+      "Cancel",
+      "Settings",
+      "View Stats",
+      "New Session",
+      "Buy me a coffee ☕",
+      "Exit App",
+    ];
     if (Platform.OS === "ios") {
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: [
-            "Cancel",
-            "Settings",
-            "Exit App",
-            "View Stats",
-            "New Session",
-          ],
-          cancelButtonIndex: 0,
-          destructiveButtonIndex: 2,
+          options,
+          cancelButtonIndex: options.indexOf("Cancel"),
+          destructiveButtonIndex: options.indexOf("Exit App"),
         },
         (buttonIndex) => {
           handleActionSheetSelection(buttonIndex);
@@ -176,10 +176,10 @@ const TapAppAlternative = () => {
         "Select an option",
         [
           { text: "Cancel", style: "cancel" },
-          { text: "Settings", onPress: () => handleActionSheetSelection(1) },
-          { text: "Exit App", onPress: () => handleActionSheetSelection(2) },
-          { text: "View Stats", onPress: () => handleActionSheetSelection(3) },
-          { text: "New Session", onPress: () => handleActionSheetSelection(4) },
+          ...options.map((item) => ({
+            text: item,
+            onPress: () => handleActionSheetSelection(options.indexOf(item)),
+          })),
         ],
         { cancelable: true }
       );
@@ -188,18 +188,24 @@ const TapAppAlternative = () => {
 
   // Handle ActionSheet selection
   const handleActionSheetSelection = (index: number) => {
+    console.log("index", index);
     switch (index) {
-      case 1: // Settings
-        // Navigate to settings page if we were using a navigator
+      case 1:
         push("/settings");
         break;
-      case 2: // Exit App
+      case 2:
+        push("/stats");
+        break;
+      case 3:
+        startNewSession();
+        break;
+      case 4:
+        push("https://buymeacoffee.com/diorla");
+        break;
+      case 5: // Exit App
         if (Platform.OS === "android") {
           BackHandler.exitApp();
         }
-        break;
-      case 3: // View Stats
-        push("/stats");
         break;
       default:
         break;
