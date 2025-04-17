@@ -8,6 +8,8 @@
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "description": "The least productive app ever made",
+    "githubUrl": "https://github.com/Diorla/just-tap",
     "ios": {
       "supportsTablet": true
     },

@@ -1,6 +1,6 @@
-# Welcome to your Expo app 👋
+# Just Tap
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This is the silliest app. Your hands are getting itchy and you just want to press something. Just tap's got your back.
 
 ## Get started
 
