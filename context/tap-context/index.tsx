@@ -13,6 +13,7 @@ const TapDataContext = createContext<TapDataContextType>({
   getTapsBySession: async () => [],
   getAllSessions: async () => [],
   clearAllData: async () => {},
+  deleteSession: async () => {},
 });
 
 // Storage keys
@@ -185,6 +186,33 @@ export const TapDataProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  // Delete a specific session and its associated taps
+  const deleteSession = async (sessionId: string): Promise<void> => {
+    try {
+      // Check if trying to delete the current session
+      if (currentSession && currentSession.id === sessionId) {
+        await endCurrentSession();
+      }
+
+      // Remove the session from storage
+      const storedSessions = await getAllSessions();
+      const updatedSessions = storedSessions.filter(
+        (session) => session.id !== sessionId
+      );
+      await AsyncStorage.setItem(
+        SESSIONS_STORAGE_KEY,
+        JSON.stringify(updatedSessions)
+      );
+
+      // Remove all taps associated with this session
+      const allTaps = await getAllTaps();
+      const updatedTaps = allTaps.filter((tap) => tap.sessionId !== sessionId);
+      await AsyncStorage.setItem(TAPS_STORAGE_KEY, JSON.stringify(updatedTaps));
+    } catch (error) {
+      console.error("Failed to delete session:", error);
+    }
+  };
+
   // Clear all tap data
   const clearAllData = async (): Promise<void> => {
     try {
@@ -213,6 +241,7 @@ export const TapDataProvider: React.FC<{ children: React.ReactNode }> = ({
         getTapsBySession,
         getAllSessions,
         clearAllData,
+        deleteSession,
       }}
     >
       {children}

@@ -15,11 +15,13 @@ import {
   Pressable,
   Modal,
   Dimensions,
+  Button,
 } from "react-native";
 
 const StatsScreen = () => {
   const { back } = useRouter();
-  const { getAllTaps, getAllSessions, clearAllData } = useTapData();
+  const { getAllTaps, getAllSessions, clearAllData, deleteSession } =
+    useTapData();
   const [showModal, setShowModal] = useState(false);
 
   const [isLoading, setIsLoading] = useState(true);
@@ -128,6 +130,8 @@ const StatsScreen = () => {
       </View>
     );
   }
+
+  const index = sessions.findIndex((s) => s.id === selectedSession);
 
   return (
     <View style={styles.container}>
@@ -251,6 +255,17 @@ const StatsScreen = () => {
                 )}
               </View>
             )}
+            <Button
+              title="Delete Session"
+              color="red"
+              disabled={!index}
+              onPress={() => {
+                if (selectedSession) {
+                  deleteSession(selectedSession);
+                  loadData();
+                }
+              }}
+            />
           </View>
         )}
 

@@ -10,4 +10,5 @@ export default interface TapDataContextType {
   getTapsBySession: (sessionId: string) => Promise<TapData[]>;
   getAllSessions: () => Promise<TapSession[]>;
   clearAllData: () => Promise<void>;
+  deleteSession: (sessionId: string) => Promise<void>;
 }
