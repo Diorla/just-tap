@@ -166,10 +166,7 @@ const TapAppAlternative = () => {
     ];
 
     // Determine platform and show appropriate menu
-    if (Platform.OS === "web") {
-      // Web platform - show custom modal menu
-      setWebMenuVisible(true);
-    } else if (Platform.OS === "ios") {
+    if (Platform.OS === "ios") {
       // iOS platform - use ActionSheetIOS
       ActionSheetIOS.showActionSheetWithOptions(
         {
@@ -182,28 +179,13 @@ const TapAppAlternative = () => {
         }
       );
     } else {
-      // Android platform - use Alert as a simple alternative
-      Alert.alert(
-        "Menu",
-        "Select an option",
-        [
-          { text: "Cancel", style: "cancel" },
-          ...options.slice(1).map((item) => ({
-            text: item,
-            onPress: () => handleActionSheetSelection(options.indexOf(item)),
-            style: (item === "Exit App"
-              ? "destructive"
-              : "default") as "default",
-          })),
-        ],
-        { cancelable: true }
-      );
+      // Web platform - show custom modal menu
+      setWebMenuVisible(true);
     }
   };
 
   // Handle ActionSheet selection
   const handleActionSheetSelection = (index: number) => {
-    console.log("index", index);
     switch (index) {
       case 1:
         push("/settings");
@@ -268,7 +250,12 @@ const TapAppAlternative = () => {
                       styles.webMenuItem,
                       option === "Exit App" && styles.webMenuDestructiveItem,
                     ]}
-                    onPress={() => handleActionSheetSelection(index + 1)}
+                    onPress={() => {
+                      if (webMenuVisible) {
+                        handleActionSheetSelection(index + 1);
+                        setWebMenuVisible(false);
+                      }
+                    }}
                   >
                     <Text
                       style={[
@@ -377,7 +364,7 @@ const TapAppAlternative = () => {
       </TouchableWithoutFeedback>
 
       {/* Render web menu */}
-      {Platform.OS === "web" && renderWebMenu()}
+      {Platform.OS !== "ios" && renderWebMenu()}
     </View>
   );
 };
