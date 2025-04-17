@@ -15,6 +15,8 @@ import {
   BackHandler,
   PanResponder,
   GestureResponderEvent,
+  TouchableOpacity,
+  Modal,
 } from "react-native";
 
 // Interface for ripple objects
@@ -39,6 +41,10 @@ const TapAppAlternative = () => {
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(
     null
   );
+
+  // Web menu modal state
+  const [webMenuVisible, setWebMenuVisible] = useState(false);
+
   // Animation value for feedback effect
   const animatedScale = useRef(new Animated.Value(1)).current;
 
@@ -156,9 +162,15 @@ const TapAppAlternative = () => {
       "View Stats",
       "New Session",
       "Buy me a coffee ☕",
-      "Exit App",
+      // "Exit App",
     ];
-    if (Platform.OS === "ios") {
+
+    // Determine platform and show appropriate menu
+    if (Platform.OS === "web") {
+      // Web platform - show custom modal menu
+      setWebMenuVisible(true);
+    } else if (Platform.OS === "ios") {
+      // iOS platform - use ActionSheetIOS
       ActionSheetIOS.showActionSheetWithOptions(
         {
           options,
@@ -170,15 +182,18 @@ const TapAppAlternative = () => {
         }
       );
     } else {
-      // For Android, use Alert as a simple alternative
+      // Android platform - use Alert as a simple alternative
       Alert.alert(
         "Menu",
         "Select an option",
         [
           { text: "Cancel", style: "cancel" },
-          ...options.map((item) => ({
+          ...options.slice(1).map((item) => ({
             text: item,
             onPress: () => handleActionSheetSelection(options.indexOf(item)),
+            style: (item === "Exit App"
+              ? "destructive"
+              : "default") as "default",
           })),
         ],
         { cancelable: true }
@@ -205,11 +220,78 @@ const TapAppAlternative = () => {
       case 5: // Exit App
         if (Platform.OS === "android") {
           BackHandler.exitApp();
+        } else if (Platform.OS === "web") {
+          // For web, we might just close the tab or show a confirmation
+          if (window.confirm("Are you sure you want to exit?")) {
+            window.close();
+          }
         }
         break;
       default:
         break;
     }
+
+    // Hide web menu if it's visible
+    if (Platform.OS === "web") {
+      setWebMenuVisible(false);
+    }
+  };
+
+  // Render web-specific menu component
+  const renderWebMenu = () => {
+    if (!webMenuVisible) return null;
+
+    const options = [
+      "Settings",
+      "View Stats",
+      "New Session",
+      "Buy me a coffee ☕",
+      // "Exit App",
+    ];
+
+    return (
+      <Modal
+        visible={webMenuVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setWebMenuVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setWebMenuVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={styles.webMenuContainer}>
+                <Text style={styles.webMenuTitle}>Menu</Text>
+                {options.map((option, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.webMenuItem,
+                      option === "Exit App" && styles.webMenuDestructiveItem,
+                    ]}
+                    onPress={() => handleActionSheetSelection(index + 1)}
+                  >
+                    <Text
+                      style={[
+                        styles.webMenuItemText,
+                        option === "Exit App" && styles.webMenuDestructiveText,
+                      ]}
+                    >
+                      {option}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+                <TouchableOpacity
+                  style={[styles.webMenuItem, styles.webMenuCancelItem]}
+                  onPress={() => setWebMenuVisible(false)}
+                >
+                  <Text style={styles.webMenuCancelText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+    );
   };
 
   // Render ripple effects
@@ -248,6 +330,24 @@ const TapAppAlternative = () => {
     });
   };
 
+  // Add keyboard event listener for web
+  useEffect(() => {
+    if (Platform.OS === "web") {
+      const handleKeyPress = (event: KeyboardEvent) => {
+        // Open menu on 'M' key press (for example)
+        if (event.key === "m" || event.key === "M") {
+          showActionSheet();
+        }
+      };
+
+      window.addEventListener("keydown", handleKeyPress);
+
+      return () => {
+        window.removeEventListener("keydown", handleKeyPress);
+      };
+    }
+  }, []);
+
   return (
     <View style={{ flex: 1 }} {...panResponder.panHandlers}>
       <TouchableWithoutFeedback onPress={handleTap}>
@@ -267,10 +367,17 @@ const TapAppAlternative = () => {
               )}
             </View>
           )}
-          <Text style={styles.instruction}>Two-finger long press for menu</Text>
+          <Text style={styles.instruction}>
+            {Platform.OS === "web"
+              ? "Two-finger long press or press 'M' key for menu"
+              : "Two-finger long press for menu"}
+          </Text>
           {renderRipples()}
         </Animated.View>
       </TouchableWithoutFeedback>
+
+      {/* Render web menu */}
+      {Platform.OS === "web" && renderWebMenu()}
     </View>
   );
 };
@@ -311,6 +418,62 @@ const styles = StyleSheet.create({
     height: 50, // Smaller initial size for more accurate positioning
     borderRadius: 25, // Half of width/height
     backgroundColor: "#007AFF", // Same blue as the back button
+  },
+  // Web menu styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  webMenuContainer: {
+    width: 280,
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    overflow: "hidden",
+    // Add shadow for web
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  webMenuTitle: {
+    textAlign: "center",
+    fontWeight: "600",
+    fontSize: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  webMenuItem: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  webMenuItemText: {
+    fontSize: 16,
+    textAlign: "center",
+    color: "#007AFF",
+  },
+  webMenuDestructiveItem: {
+    borderBottomWidth: 0,
+  },
+  webMenuDestructiveText: {
+    color: "#FF3B30",
+  },
+  webMenuCancelItem: {
+    backgroundColor: "#f8f8f8",
+    borderBottomWidth: 0,
+    borderTopWidth: 6,
+    borderTopColor: "#e0e0e0",
+  },
+  webMenuCancelText: {
+    color: "#007AFF",
+    fontWeight: "600",
+    fontSize: 16,
+    textAlign: "center",
   },
 });
 
