@@ -161,7 +161,7 @@ const TapAppAlternative = () => {
       "Settings",
       "View Stats",
       "New Session",
-      "Buy me a coffee ☕",
+      // "Buy me a coffee ☕",
       // "Exit App",
     ];
 
@@ -227,7 +227,7 @@ const TapAppAlternative = () => {
       "Settings",
       "View Stats",
       "New Session",
-      "Buy me a coffee ☕",
+      // "Buy me a coffee ☕",
       // "Exit App",
     ];
 
