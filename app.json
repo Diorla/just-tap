@@ -12,14 +12,16 @@
     "githubUrl": "https://github.com/Diorla/just-tap",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.diorla.justtap"
+      "bundleIdentifier": "com.diorla.justtap",
+      "buildNumber": "2"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.diorla.justtap"
+      "package": "com.diorla.justtap",
+      "versionCode": 2
     },
     "web": {
       "bundler": "metro",
